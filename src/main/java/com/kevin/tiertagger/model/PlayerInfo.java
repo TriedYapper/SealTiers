@@ -110,13 +110,13 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
     @Getter
     @AllArgsConstructor
     public enum PointInfo {
-        COMBAT_GRANDMASTER("Combat Grandmaster", 0xE6C622, 0xFDE047),
-        COMBAT_MASTER("Combat Master", 0xFBB03B, 0xFFD13A),
-        COMBAT_ACE("Combat Ace", 0xCD285C, 0xD65474),
-        COMBAT_SPECIALIST("Combat Specialist", 0xAD78D8, 0xC7A3E8),
-        COMBAT_CADET("Combat Cadet", 0x9291D9, 0xADACE2),
-        COMBAT_NOVICE("Combat Novice", 0x9291D9, 0xFFFFFF),
-        ROOKIE("Rookie", 0x6C7178, 0x8B979C),
+        APEX_SEAL("Apex Seal", 0xE6C622, 0xFDE047),
+        LEOPARD_SEAL("Leopard Seal", 0xFBB03B, 0xFFD13A),
+        RIBBON_SEAL("Ribbon Seal", 0xCD285C, 0xD65474),
+        HARBOR_SEAL("Harbor Seal", 0xAD78D8, 0xC7A3E8),
+        GREY_SEAL("Grey Seal", 0x9291D9, 0xADACE2),
+        PUP("Pup", 0x9291D9, 0xFFFFFF),
+        PUP("Pup", 0x6C7178, 0x8B979C),
         UNRANKED("Unranked", 0xFFFFFF, 0xFFFFFF);
 
         private final String title;
