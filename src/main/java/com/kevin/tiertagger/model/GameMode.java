@@ -39,9 +39,9 @@ public record GameMode(String id, String title) {
 
     private Pair<Character, TextColor> iconAndColor() {
         return switch (this.id) {
-            case "axe" -> Pair.of('\uE701', TextColor.fromLegacyFormat(ChatFormatting.GREEN));
-            case "mace" -> Pair.of('\uE702', TextColor.fromLegacyFormat(ChatFormatting.GRAY));
-            case "nethop", "neth_pot" -> Pair.of('\uE703', TextColor.fromRgb(0x7d4a40));
+            case "melee" -> Pair.of('\uE701', TextColor.fromLegacyFormat(ChatFormatting.GREEN));
+            case "endstone" -> Pair.of('\uE702', TextColor.fromLegacyFormat(ChatFormatting.GRAY));
+            case "crystalSumo", "neth_pot" -> Pair.of('\uE703', TextColor.fromRgb(0x7d4a40));
             case "pot" -> Pair.of('\uE704', TextColor.fromRgb(0xff0000));
             case "smp" -> Pair.of('\uE705', TextColor.fromRgb(0xeccb45));
             case "sword" -> Pair.of('\uE706', TextColor.fromRgb(0xa4fdf0));
