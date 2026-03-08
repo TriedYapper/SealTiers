@@ -126,19 +126,19 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
 
     public PointInfo getPointInfo() {
         if (this.points >= 400) {
-            return PointInfo.COMBAT_GRANDMASTER;
+            return PointInfo.APEX_SEAL;
         } else if (this.points >= 250) {
-            return PointInfo.COMBAT_MASTER;
+            return PointInfo.LEOPARD_SEAL;
         } else if (this.points >= 100) {
-            return PointInfo.COMBAT_ACE;
+            return PointInfo.RIBBON_SEAL;
         } else if (this.points >= 50) {
-            return PointInfo.COMBAT_SPECIALIST;
+            return PointInfo.HARBOR_SEAl;
         } else if (this.points >= 20) {
-            return PointInfo.COMBAT_CADET;
+            return PointInfo.GREY_SEAL;
         } else if (this.points >= 10) {
-            return PointInfo.COMBAT_NOVICE;
-        } else if (this.points >= 1) {
-            return PointInfo.ROOKIE;
+            return PointInfo.PUP;
+        } else if (this.points >= 0) {
+            return PointInfo.PUP;
         } else {
             return PointInfo.UNRANKED;
         }
