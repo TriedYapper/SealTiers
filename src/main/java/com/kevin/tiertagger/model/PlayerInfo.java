@@ -138,7 +138,7 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
         } else if (this.points >= 10) {
             return PointInfo.PUP;
         } else if (this.points >= 0) {
-            return PointInfo.PUP;
+            return PointInfo.LOW_PUP;
         } else {
             return PointInfo.UNRANKED;
         }
