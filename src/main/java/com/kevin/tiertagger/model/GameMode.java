@@ -41,12 +41,7 @@ public record GameMode(String id, String title) {
         return switch (this.id) {
             case "melee" -> Pair.of('\uE701', TextColor.fromLegacyFormat(ChatFormatting.GREEN));
             case "endstone" -> Pair.of('\uE702', TextColor.fromLegacyFormat(ChatFormatting.GRAY));
-            case "crystalSumo", "neth_pot" -> Pair.of('\uE703', TextColor.fromRgb(0x7d4a40));
-            case "pot" -> Pair.of('\uE704', TextColor.fromRgb(0xff0000));
-            case "smp" -> Pair.of('\uE705', TextColor.fromRgb(0xeccb45));
-            case "sword" -> Pair.of('\uE706', TextColor.fromRgb(0xa4fdf0));
-            case "uhc" -> Pair.of('\uE707', TextColor.fromLegacyFormat(ChatFormatting.RED));
-            case "vanilla" -> Pair.of('\uE708', TextColor.fromLegacyFormat(ChatFormatting.LIGHT_PURPLE));
+            case "crystalSumo" -> Pair.of('\uE703', TextColor.fromRgb(0x7d4a40));
             default -> Pair.of('•', TextColor.fromLegacyFormat(ChatFormatting.WHITE));
         };
     }
