@@ -116,7 +116,7 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
         HARBOR_SEAL("Harbor Seal", 0xAD78D8, 0xC7A3E8),
         GREY_SEAL("Grey Seal", 0x9291D9, 0xADACE2),
         PUP("Pup", 0x9291D9, 0xFFFFFF),
-        PUP("Pup", 0x6C7178, 0x8B979C),
+        LOW_PUP("Pup", 0x6C7178, 0x8B979C),
         UNRANKED("Unranked", 0xFFFFFF, 0xFFFFFF);
 
         private final String title;
@@ -132,7 +132,7 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
         } else if (this.points >= 100) {
             return PointInfo.RIBBON_SEAL;
         } else if (this.points >= 50) {
-            return PointInfo.HARBOR_SEAl;
+            return PointInfo.HARBOR_SEAL;
         } else if (this.points >= 20) {
             return PointInfo.GREY_SEAL;
         } else if (this.points >= 10) {
