@@ -2,21 +2,21 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "tier-tagger:mctiers/axe.png",
+      "file": "tier-tagger:mctiers/melee.png",
       "ascent": 8,
       "height": 8,
       "chars": ["\uE701"]
     },
     {
       "type": "bitmap",
-      "file": "tier-tagger:mctiers/mace.png",
+      "file": "tier-tagger:mctiers/endstone.png",
       "ascent": 8,
       "height": 8,
       "chars": ["\uE702"]
     },
     {
       "type": "bitmap",
-      "file": "tier-tagger:mctiers/nethop.png",
+      "file": "tier-tagger:mctiers/crystalSumo.png",
       "ascent": 8,
       "height": 8,
       "chars": ["\uE703"]
