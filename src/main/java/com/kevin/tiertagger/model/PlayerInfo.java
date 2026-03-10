@@ -174,16 +174,24 @@ private static int calculatePoints(JsonObject obj) {
 }
 
 private static int calculateOverallRank(JsonObject target, List<JsonObject> allPlayers) {
-    List<JsonObject> sorted = new ArrayList<>(allPlayers);
-
-    sorted.sort((a, b) -> Integer.compare(calculatePoints(b), calculatePoints(a)));
-
     int targetId = target.get("id").getAsInt();
 
-    for (int i = 0; i < sorted.size(); i++) {
-        JsonObject obj = sorted.get(i);
+    List<Map.Entry<Integer, Integer>> scoredPlayers = new ArrayList<>();
 
-        if (obj.has("id") && !obj.get("id").isJsonNull() && obj.get("id").getAsInt() == targetId) {
+    for (JsonObject obj : allPlayers) {
+        if (!obj.has("id") || obj.get("id").isJsonNull()) {
+            continue;
+        }
+
+        int id = obj.get("id").getAsInt();
+        int points = calculatePoints(obj);
+        scoredPlayers.add(Map.entry(id, points));
+    }
+
+    scoredPlayers.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+
+    for (int i = 0; i < scoredPlayers.size(); i++) {
+        if (scoredPlayers.get(i).getKey() == targetId) {
             return i + 1;
         }
     }
@@ -196,25 +204,31 @@ private static int pointsForTier(String tierCode) {
         return 0;
     }
 
-    char band = Character.toUpperCase(tierCode.charAt(0));
-    int tierNumber;
+    tierCode = tierCode.toUpperCase(Locale.ROOT);
 
-    try {
-        tierNumber = Integer.parseInt(tierCode.substring(2));
-    } catch (NumberFormatException e) {
-        return 0;
+    // Remove retired prefix
+    if (tierCode.startsWith("R")) {
+        tierCode = tierCode.substring(1);
     }
 
-    int base = switch (tierNumber) {
-        case 1 -> 100;
-        case 2 -> 80;
-        case 3 -> 60;
-        case 4 -> 40;
-        case 5 -> 20;
+    return switch (tierCode) {
+        case "HT1" -> 60;
+        case "LT1" -> 45;
+
+        case "HT2" -> 30;
+        case "LT2" -> 20;
+
+        case "HT3" -> 10;
+        case "LT3" -> 6;
+
+        case "HT4" -> 4;
+        case "LT4" -> 3;
+
+        case "HT5" -> 2;
+        case "LT5" -> 1;
+
         default -> 0;
     };
-
-    return band == 'H' ? base : base / 2;
 }
 
 private static void addRanking(Map<String, Ranking> rankings, String mode, String activeTier, String retiredTier) {
