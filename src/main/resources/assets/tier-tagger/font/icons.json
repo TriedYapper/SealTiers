@@ -1,0 +1,13 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "tier-tagger:textures/font/icons.png",
+      "ascent": 26,
+      "height": 32,
+      "chars": [
+        "\uE701\uE702\uE703"
+      ]
+    }
+  ]
+}
