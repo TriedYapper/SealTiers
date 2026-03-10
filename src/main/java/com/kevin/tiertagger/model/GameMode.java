@@ -1,5 +1,6 @@
 package com.kevin.tiertagger.model;
 
+import net.minecraft.resources.ResourceLocation;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -34,20 +35,20 @@ public static CompletableFuture<List<GameMode>> fetchGamemodes(HttpClient client
         };
     }
 
-    public Optional<Character> icon() {
-        Pair<Character, TextColor> pair = this.iconAndColor();
+public Component asStyled(boolean withDefaultDot) {
+    Pair<Character, TextColor> pair = this.iconAndColor();
 
-        return pair.right().getValue() == 0xFFFFFF ? Optional.empty() : Optional.of(pair.left());
-    }
+    if (pair.right().getValue() == 0xFFFFFF && !withDefaultDot) {
+        return Component.literal(this.title);
+    } else {
+        Component icon = Component.literal(String.valueOf(pair.left()))
+                .withStyle(s -> s
+                        .withColor(pair.right())
+                        .withFont(ResourceLocation.fromNamespaceAndPath("tier-tagger", "icons")));
 
-    public Component asStyled(boolean withDefaultDot) {
-        Pair<Character, TextColor> pair = this.iconAndColor();
+        Component name = Component.literal(" " + this.title)
+                .withStyle(s -> s.withColor(pair.right()));
 
-        if (pair.right().getValue() == 0xFFFFFF && !withDefaultDot) {
-            return Component.literal(this.title);
-        } else {
-            Component name = Component.literal(this.title).withStyle(s -> s.withColor(pair.right()));
-            return Component.literal(pair.left() + " ").append(name);
-        }
+        return icon.append(name);
     }
 }
