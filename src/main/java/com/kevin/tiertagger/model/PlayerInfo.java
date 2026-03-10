@@ -1,7 +1,10 @@
 package com.kevin.tiertagger.model;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.reflect.TypeToken;
 import com.kevin.tiertagger.TierCache;
 import com.kevin.tiertagger.TierTagger;
 import lombok.AllArgsConstructor;
@@ -60,42 +63,134 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
             "AF", 0x674ea7
     );
 
-    public static CompletableFuture<PlayerInfo> get(HttpClient client, UUID uuid) {
-        String endpoint = TierTagger.getManager().getConfig().getApiUrl() + "/v2/profile/" + uuid;
-        final HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint)).GET().build();
+  public static CompletableFuture<PlayerInfo> get(HttpClient client, UUID uuid) {
+    String endpoint = TierTagger.getManager().getConfig().getApiUrl() + "/players";
+    final HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint)).GET().build();
 
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(s -> TierTagger.GSON.fromJson(s, PlayerInfo.class))
-                .whenComplete((i, t) -> {
-                    if (t != null) TierTagger.getLogger().warn("Error getting player info ({})", uuid, t);
-                });
+    return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApply(HttpResponse::body)
+            .thenApply(body -> {
+                JsonArray arr = TierTagger.GSON.fromJson(body, JsonArray.class);
+
+                for (JsonElement el : arr) {
+                    JsonObject obj = el.getAsJsonObject();
+                    String mcUuid = getNullableString(obj, "mcUuid");
+
+                    if (mcUuid != null && mcUuid.equalsIgnoreCase(uuid.toString().replace("-", ""))) {
+                        return fromSealTiersPlayer(obj);
+                    }
+                }
+
+                return null;
+            })
+            .whenComplete((i, t) -> {
+                if (t != null) TierTagger.getLogger().warn("Error getting player info ({})", uuid, t);
+            });
+}
+
+public static CompletableFuture<Map<String, Ranking>> getRankings(HttpClient client, UUID uuid) {
+    return get(client, uuid).thenApply(info -> info == null ? Map.of() : info.rankings());
+}
+
+public static CompletableFuture<PlayerInfo> search(HttpClient client, String query) {
+    String endpoint = TierTagger.getManager().getConfig().getApiUrl() + "/players";
+    final HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint)).GET().build();
+
+    return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApply(HttpResponse::body)
+            .thenApply(body -> {
+                JsonArray arr = TierTagger.GSON.fromJson(body, JsonArray.class);
+
+                for (JsonElement el : arr) {
+                    JsonObject obj = el.getAsJsonObject();
+
+                    String mcUsername = getNullableString(obj, "mcUsername");
+                    String username = getNullableString(obj, "username");
+
+                    if ((mcUsername != null && mcUsername.equalsIgnoreCase(query)) ||
+                        (username != null && username.equalsIgnoreCase(query))) {
+                        return fromSealTiersPlayer(obj);
+                    }
+                }
+
+                return null;
+            })
+            .whenComplete((i, t) -> {
+                if (t != null) TierTagger.getLogger().warn("Error searching player {}", query, t);
+            });
+}
+
+private static PlayerInfo fromSealTiersPlayer(JsonObject obj) {
+    String uuid = getNullableString(obj, "mcUuid");
+    String name = getNullableString(obj, "mcUsername");
+    String region = normalizeRegion(getNullableString(obj, "region"));
+
+    Map<String, Ranking> rankings = new HashMap<>();
+
+    addRanking(rankings, "endstone", getNullableString(obj, "endstoneTier"), getNullableString(obj, "retiredEndstoneTier"));
+    addRanking(rankings, "melee", getNullableString(obj, "meleeTier"), getNullableString(obj, "retiredMeleeTier"));
+    addRanking(rankings, "crystalSumo", getNullableString(obj, "crystalSumoTier"), getNullableString(obj, "retiredCrystalSumoTier"));
+
+    return new PlayerInfo(
+            uuid == null ? "" : uuid,
+            name == null ? "Unknown" : name,
+            rankings,
+            region == null ? "NA" : region,
+            0,
+            0,
+            List.of(),
+            false
+    );
+}
+
+private static void addRanking(Map<String, Ranking> rankings, String mode, String activeTier, String retiredTier) {
+    if (activeTier != null) {
+        rankings.put(mode, parseSealTier(activeTier, false));
+    } else if (retiredTier != null) {
+        rankings.put(mode, parseSealTier(retiredTier, true));
+    }
+}
+
+private static Ranking parseSealTier(String tierCode, boolean retired) {
+    if (tierCode == null || tierCode.length() < 3) {
+        return new Ranking(999, 1, null, null, 0L, retired);
     }
 
-    public static CompletableFuture<Map<String, Ranking>> getRankings(HttpClient client, UUID uuid) {
-        String endpoint = TierTagger.getManager().getConfig().getApiUrl() + "/v2/profile/" + uuid + "/rankings";
-        final HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint)).GET().build();
+    char highLow = Character.toUpperCase(tierCode.charAt(0));
+    int tierNumber;
 
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(s -> TierTagger.GSON.fromJson(s, new TypeToken<Map<String, Ranking>>() {}))
-                .whenComplete((i, t) -> {
-                    if (t != null) TierTagger.getLogger().warn("Error getting player rankings ({})", uuid, t);
-                });
+    try {
+        tierNumber = Integer.parseInt(tierCode.substring(2));
+    } catch (NumberFormatException e) {
+        tierNumber = 999;
     }
 
-    public static CompletableFuture<PlayerInfo> search(HttpClient client, String query) {
-        String endpoint = TierTagger.getManager().getConfig().getApiUrl() + "/v2/profile/by-name/" + query;
-        final HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint)).GET().build();
+    int pos = (highLow == 'H') ? 0 : 1;
 
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(s -> TierTagger.GSON.fromJson(s, PlayerInfo.class))
-                .whenComplete((i, t) -> {
-                    if (t != null) TierTagger.getLogger().warn("Error searching player {}", query, t);
-                });
+    return new Ranking(tierNumber, pos, null, null, 0L, retired);
+}
+
+private static String getNullableString(JsonObject obj, String key) {
+    if (!obj.has(key) || obj.get(key).isJsonNull()) {
+        return null;
     }
+    return obj.get(key).getAsString();
+}
 
+private static String normalizeRegion(String region) {
+    if (region == null) return "NA";
+
+    return switch (region) {
+        case "North America" -> "NA";
+        case "Europe" -> "EU";
+        case "South America" -> "SA";
+        case "Asia" -> "AS";
+        case "Africa" -> "AF";
+        case "Australia", "Oceania" -> "AU";
+        case "Middle East" -> "ME";
+        default -> region;
+    };
+}
     public int getRegionColor() {
         return REGION_COLORS.getOrDefault(this.region.toUpperCase(Locale.ROOT), 0xffffff);
     }
