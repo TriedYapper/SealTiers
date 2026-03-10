@@ -27,9 +27,9 @@ public static CompletableFuture<List<GameMode>> fetchGamemodes(HttpClient client
 
     private Pair<Character, TextColor> iconAndColor() {
         return switch (this.id) {
-            case "melee" -> Pair.of('\uE701', TextColor.fromLegacyFormat(ChatFormatting.GREEN));
-            case "endstone" -> Pair.of('\uE702', TextColor.fromLegacyFormat(ChatFormatting.GRAY));
-            case "crystalSumo" -> Pair.of('\uE703', TextColor.fromRgb(0x7d4a40));
+            case "melee" -> Pair.of('\uE701', TextColor.fromRgb(0xffc800));
+            case "endstone" -> Pair.of('\uE702', TextColor.fromRgb(0xfeffe3));
+            case "crystalSumo" -> Pair.of('\uE703', TextColor.fromRgb(0xdd00ff));
             default -> Pair.of('•', TextColor.fromLegacyFormat(ChatFormatting.WHITE));
         };
     }
