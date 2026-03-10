@@ -481,13 +481,13 @@ private static String normalizeRegion(String region) {
     @Getter
     @AllArgsConstructor
     public enum PointInfo {
-        APEX_SEAL("Apex Seal", 0xE6C622, 0xFDE047),
-        LEOPARD_SEAL("Leopard Seal", 0xFBB03B, 0xFFD13A),
-        RIBBON_SEAL("Ribbon Seal", 0xCD285C, 0xD65474),
-        HARBOR_SEAL("Harbor Seal", 0xAD78D8, 0xC7A3E8),
-        GREY_SEAL("Grey Seal", 0x9291D9, 0xADACE2),
-        PUP("Pup", 0x9291D9, 0xFFFFFF),
-        LOW_PUP("Pup", 0x6C7178, 0x8B979C),
+        LEVIATHAN_SEAL("Leviathan Seal", 0xE6C622, 0xFDE047),
+        APEX_SEAL("Apex Seal", 0xFBB03B, 0xFFD13A),
+        LEOPARD_SEAL("Leopard Seal", 0xCD285C, 0xD65474),
+        RIBBON_SEAL("Ribbon Seal", 0xAD78D8, 0xC7A3E8),
+        HARBOR_SEAL("Harbour Seal", 0x9291D9, 0xADACE2),
+        GREY_SEAL("Grey Seal", 0x9291D9, 0xFFFFFF),
+        PUP("Pup", 0x6C7178, 0x8B979C),
         UNRANKED("Unranked", 0xFFFFFF, 0xFFFFFF);
 
         private final String title;
@@ -497,19 +497,19 @@ private static String normalizeRegion(String region) {
 
     public PointInfo getPointInfo() {
         if (this.points >= 400) {
-            return PointInfo.APEX_SEAL;
+            return PointInfo.LEVIATHAN_SEAL;
         } else if (this.points >= 250) {
-            return PointInfo.LEOPARD_SEAL;
+            return PointInfo.APEX_SEAL;
         } else if (this.points >= 100) {
-            return PointInfo.RIBBON_SEAL;
+            return PointInfo.LEOPARD_SEAL;
         } else if (this.points >= 50) {
-            return PointInfo.HARBOR_SEAL;
+            return PointInfo.RIBBON_SEAL;
         } else if (this.points >= 20) {
-            return PointInfo.GREY_SEAL;
+            return PointInfo.HARBOR_SEAL;
         } else if (this.points >= 10) {
-            return PointInfo.PUP;
+            return PointInfo.GREY_SEAL;
         } else if (this.points >= 0) {
-            return PointInfo.LOW_PUP;
+            return PointInfo.PUP;
         } else {
             return PointInfo.UNRANKED;
         }
