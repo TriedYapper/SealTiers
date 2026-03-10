@@ -63,7 +63,7 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
             "AF", 0x674ea7
     );
 
-  public static CompletableFuture<PlayerInfo> get(HttpClient client, UUID uuid) {
+public static CompletableFuture<PlayerInfo> get(HttpClient client, UUID uuid) {
     String endpoint = TierTagger.getManager().getConfig().getApiUrl() + "/players";
     final HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint)).GET().build();
 
@@ -71,17 +71,26 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
             .thenApply(HttpResponse::body)
             .thenApply(body -> {
                 JsonArray arr = TierTagger.GSON.fromJson(body, JsonArray.class);
+                List<JsonObject> allPlayers = new ArrayList<>();
+
+                JsonObject matched = null;
+                String targetUuid = uuid.toString().replace("-", "");
 
                 for (JsonElement el : arr) {
                     JsonObject obj = el.getAsJsonObject();
-                    String mcUuid = getNullableString(obj, "mcUuid");
+                    allPlayers.add(obj);
 
-                    if (mcUuid != null && mcUuid.equalsIgnoreCase(uuid.toString().replace("-", ""))) {
-                        return fromSealTiersPlayer(obj);
+                    String mcUuid = getNullableString(obj, "mcUuid");
+                    if (mcUuid != null && mcUuid.equalsIgnoreCase(targetUuid)) {
+                        matched = obj;
                     }
                 }
 
-                return null;
+                if (matched == null) {
+                    return null;
+                }
+
+                return fromSealTiersPlayer(matched, allPlayers);
             })
             .whenComplete((i, t) -> {
                 if (t != null) TierTagger.getLogger().warn("Error getting player info ({})", uuid, t);
@@ -100,27 +109,35 @@ public static CompletableFuture<PlayerInfo> search(HttpClient client, String que
             .thenApply(HttpResponse::body)
             .thenApply(body -> {
                 JsonArray arr = TierTagger.GSON.fromJson(body, JsonArray.class);
+                List<JsonObject> allPlayers = new ArrayList<>();
+
+                JsonObject matched = null;
 
                 for (JsonElement el : arr) {
                     JsonObject obj = el.getAsJsonObject();
+                    allPlayers.add(obj);
 
                     String mcUsername = getNullableString(obj, "mcUsername");
                     String username = getNullableString(obj, "username");
 
                     if ((mcUsername != null && mcUsername.equalsIgnoreCase(query)) ||
                         (username != null && username.equalsIgnoreCase(query))) {
-                        return fromSealTiersPlayer(obj);
+                        matched = obj;
                     }
                 }
 
-                return null;
+                if (matched == null) {
+                    return null;
+                }
+
+                return fromSealTiersPlayer(matched, allPlayers);
             })
             .whenComplete((i, t) -> {
                 if (t != null) TierTagger.getLogger().warn("Error searching player {}", query, t);
             });
 }
 
-private static PlayerInfo fromSealTiersPlayer(JsonObject obj) {
+private static PlayerInfo fromSealTiersPlayer(JsonObject obj, List<JsonObject> allPlayers) {
     String uuid = getNullableString(obj, "mcUuid");
     String name = getNullableString(obj, "mcUsername");
     String region = normalizeRegion(getNullableString(obj, "region"));
@@ -131,16 +148,73 @@ private static PlayerInfo fromSealTiersPlayer(JsonObject obj) {
     addRanking(rankings, "melee", getNullableString(obj, "meleeTier"), getNullableString(obj, "retiredMeleeTier"));
     addRanking(rankings, "crystalSumo", getNullableString(obj, "crystalSumoTier"), getNullableString(obj, "retiredCrystalSumoTier"));
 
+    int points = calculatePoints(obj);
+    int overall = calculateOverallRank(obj, allPlayers);
+
     return new PlayerInfo(
             uuid == null ? "" : uuid,
             name == null ? "Unknown" : name,
             rankings,
             region == null ? "NA" : region,
-            0,
-            0,
+            points,
+            overall,
             List.of(),
             false
     );
+}
+
+private static int calculatePoints(JsonObject obj) {
+    int points = 0;
+
+    points += pointsForTier(getNullableString(obj, "endstoneTier"));
+    points += pointsForTier(getNullableString(obj, "meleeTier"));
+    points += pointsForTier(getNullableString(obj, "crystalSumoTier"));
+
+    return points;
+}
+
+private static int calculateOverallRank(JsonObject target, List<JsonObject> allPlayers) {
+    List<JsonObject> sorted = new ArrayList<>(allPlayers);
+
+    sorted.sort((a, b) -> Integer.compare(calculatePoints(b), calculatePoints(a)));
+
+    int targetId = target.get("id").getAsInt();
+
+    for (int i = 0; i < sorted.size(); i++) {
+        JsonObject obj = sorted.get(i);
+
+        if (obj.has("id") && !obj.get("id").isJsonNull() && obj.get("id").getAsInt() == targetId) {
+            return i + 1;
+        }
+    }
+
+    return 0;
+}
+
+private static int pointsForTier(String tierCode) {
+    if (tierCode == null || tierCode.length() < 3) {
+        return 0;
+    }
+
+    char band = Character.toUpperCase(tierCode.charAt(0));
+    int tierNumber;
+
+    try {
+        tierNumber = Integer.parseInt(tierCode.substring(2));
+    } catch (NumberFormatException e) {
+        return 0;
+    }
+
+    int base = switch (tierNumber) {
+        case 1 -> 100;
+        case 2 -> 80;
+        case 3 -> 60;
+        case 4 -> 40;
+        case 5 -> 20;
+        default -> 0;
+    };
+
+    return band == 'H' ? base : base / 2;
 }
 
 private static void addRanking(Map<String, Ranking> rankings, String mode, String activeTier, String retiredTier) {
