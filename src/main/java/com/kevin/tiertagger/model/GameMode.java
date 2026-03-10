@@ -44,7 +44,7 @@ public Component asStyled(boolean withDefaultDot) {
         Component icon = Component.literal(String.valueOf(pair.left()))
                 .withStyle(s -> s
                         .withColor(pair.right())
-                        .withFont(ResourceLocation.fromNamespaceAndPath("tier-tagger", "icons")));
+                        .withFont(new ResourceLocation("tier-tagger", "icons")));
 
         Component name = Component.literal(" " + this.title)
                 .withStyle(s -> s.withColor(pair.right()));
