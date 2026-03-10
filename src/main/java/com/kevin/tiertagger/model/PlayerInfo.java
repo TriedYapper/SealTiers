@@ -144,9 +144,9 @@ private static PlayerInfo fromSealTiersPlayer(JsonObject obj, List<JsonObject> a
 
     Map<String, Ranking> rankings = new HashMap<>();
 
-    addRanking(rankings, "endstone", getNullableString(obj, "endstoneTier"), getNullableString(obj, "retiredEndstoneTier"));
-    addRanking(rankings, "melee", getNullableString(obj, "meleeTier"), getNullableString(obj, "retiredMeleeTier"));
-    addRanking(rankings, "crystalSumo", getNullableString(obj, "crystalSumoTier"), getNullableString(obj, "retiredCrystalSumoTier"));
+    addRanking(rankings, "endstone", getNullableString(obj, "endstoneTier"), getNullableString(obj, "retiredEndstoneTier"), obj);
+    addRanking(rankings, "melee", getNullableString(obj, "meleeTier"), getNullableString(obj, "retiredMeleeTier"), obj);
+    addRanking(rankings, "crystalSumo", getNullableString(obj, "crystalSumoTier"), getNullableString(obj, "retiredCrystalSumoTier"), obj);
 
     int points = calculatePoints(obj);
     int overall = calculateOverallRank(obj, allPlayers);
@@ -166,11 +166,94 @@ private static PlayerInfo fromSealTiersPlayer(JsonObject obj, List<JsonObject> a
 private static int calculatePoints(JsonObject obj) {
     int points = 0;
 
-    points += pointsForTier(getNullableString(obj, "endstoneTier"));
-    points += pointsForTier(getNullableString(obj, "meleeTier"));
-    points += pointsForTier(getNullableString(obj, "crystalSumoTier"));
+    points += pointsForTier(getBestTierForMode(obj, "endstone"));
+    points += pointsForTier(getBestTierForMode(obj, "melee"));
+    points += pointsForTier(getBestTierForMode(obj, "crystalSumo"));
 
     return points;
+}
+
+private static String getBestTierForMode(JsonObject obj, String mode) {
+    String best = null;
+
+    // Current active tier
+    String current = switch (mode) {
+        case "endstone" -> getNullableString(obj, "endstoneTier");
+        case "melee" -> getNullableString(obj, "meleeTier");
+        case "crystalSumo" -> getNullableString(obj, "crystalSumoTier");
+        default -> null;
+    };
+
+    // Retired tier
+    String retired = switch (mode) {
+        case "endstone" -> getNullableString(obj, "retiredEndstoneTier");
+        case "melee" -> getNullableString(obj, "retiredMeleeTier");
+        case "crystalSumo" -> getNullableString(obj, "retiredCrystalSumoTier");
+        default -> null;
+    };
+
+    best = betterTier(best, current);
+    best = betterTier(best, retired);
+
+    // Tier history entries look like: "HT1:1772322379069:crystalSumo"
+    if (obj.has("tierHistory") && obj.get("tierHistory").isJsonArray()) {
+        for (JsonElement el : obj.getAsJsonArray("tierHistory")) {
+            if (el == null || el.isJsonNull()) continue;
+
+            String entry = el.getAsString();
+            String[] parts = entry.split(":");
+            if (parts.length < 3) continue;
+
+            String tierCode = parts[0];
+            String historyMode = parts[2];
+
+            if (mode.equalsIgnoreCase(historyMode)) {
+                best = betterTier(best, tierCode);
+            }
+        }
+    }
+
+    return best;
+}
+
+private static String betterTier(String a, String b) {
+    if (a == null) return b;
+    if (b == null) return a;
+
+    return compareTierCodes(a, b) <= 0 ? a : b;
+}
+
+private static int compareTierCodes(String a, String b) {
+    return Integer.compare(tierSortValue(a), tierSortValue(b));
+}
+
+private static int tierSortValue(String tierCode) {
+    if (tierCode == null || tierCode.isBlank()) {
+        return Integer.MAX_VALUE;
+    }
+
+    tierCode = tierCode.toUpperCase(Locale.ROOT);
+
+    if (tierCode.startsWith("R")) {
+        tierCode = tierCode.substring(1);
+    }
+
+    if (tierCode.length() < 3) {
+        return Integer.MAX_VALUE;
+    }
+
+    char band = tierCode.charAt(0); // H or L
+    int tierNumber;
+
+    try {
+        tierNumber = Integer.parseInt(tierCode.substring(2));
+    } catch (NumberFormatException e) {
+        return Integer.MAX_VALUE;
+    }
+
+    int pos = (band == 'H') ? 0 : 1;
+
+    return tierNumber * 2 + pos;
 }
 
 private static int calculateOverallRank(JsonObject target, List<JsonObject> allPlayers) {
@@ -231,12 +314,34 @@ private static int pointsForTier(String tierCode) {
     };
 }
 
-private static void addRanking(Map<String, Ranking> rankings, String mode, String activeTier, String retiredTier) {
-    if (activeTier != null) {
-        rankings.put(mode, parseSealTier(activeTier, false));
-    } else if (retiredTier != null) {
-        rankings.put(mode, parseSealTier(retiredTier, true));
+private static void addRanking(Map<String, Ranking> rankings, String mode, String activeTier, String retiredTier, JsonObject obj) {
+    String shownTier = activeTier != null ? activeTier : retiredTier;
+    boolean retired = activeTier == null && retiredTier != null;
+
+    if (shownTier == null) {
+        return;
     }
+
+    Ranking current = parseSealTier(shownTier, retired);
+    String peakCode = getBestTierForMode(obj, mode);
+
+    Integer peakTier = null;
+    Integer peakPos = null;
+
+    if (peakCode != null) {
+        PeakParts peak = parsePeakParts(peakCode);
+        peakTier = peak.tier();
+        peakPos = peak.pos();
+    }
+
+    rankings.put(mode, new Ranking(
+            current.tier(),
+            current.pos(),
+            peakTier,
+            peakPos,
+            0L,
+            retired
+    ));
 }
 
 private static Ranking parseSealTier(String tierCode, boolean retired) {
@@ -257,6 +362,28 @@ private static Ranking parseSealTier(String tierCode, boolean retired) {
 
     return new Ranking(tierNumber, pos, null, null, 0L, retired);
 }
+
+private static PeakParts parsePeakParts(String tierCode) {
+    if (tierCode == null || tierCode.length() < 3) {
+        return new PeakParts(null, null);
+    }
+
+    tierCode = tierCode.toUpperCase(Locale.ROOT);
+
+    if (tierCode.startsWith("R")) {
+        tierCode = tierCode.substring(1);
+    }
+
+    try {
+        int tier = Integer.parseInt(tierCode.substring(2));
+        int pos = tierCode.charAt(0) == 'H' ? 0 : 1;
+        return new PeakParts(tier, pos);
+    } catch (NumberFormatException e) {
+        return new PeakParts(null, null);
+    }
+}
+
+private record PeakParts(Integer tier, Integer pos) {}
 
 private static String getNullableString(JsonObject obj, String key) {
     if (!obj.has(key) || obj.get(key).isJsonNull()) {
