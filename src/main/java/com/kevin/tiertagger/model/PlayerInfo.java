@@ -334,14 +334,64 @@ private static void addRanking(Map<String, Ranking> rankings, String mode, Strin
         peakPos = peak.pos();
     }
 
+    long attained = findAttainedForTier(obj, mode, shownTier);
+
     rankings.put(mode, new Ranking(
             current.tier(),
             current.pos(),
             peakTier,
             peakPos,
-            0L,
+            attained,
             retired
     ));
+}
+
+private static long findAttainedForTier(JsonObject obj, String mode, String tierCode) {
+    if (tierCode == null || mode == null) {
+        return 0L;
+    }
+
+    String normalizedTier = tierCode.toUpperCase(Locale.ROOT);
+
+    // Remove retired prefix so RHT1 matches HT1 in history if needed
+    if (normalizedTier.startsWith("R")) {
+        normalizedTier = normalizedTier.substring(1);
+    }
+
+    long latestMatch = 0L;
+
+    if (obj.has("tierHistory") && obj.get("tierHistory").isJsonArray()) {
+        for (JsonElement el : obj.getAsJsonArray("tierHistory")) {
+            if (el == null || el.isJsonNull()) continue;
+
+            String entry = el.getAsString();
+            String[] parts = entry.split(":");
+            if (parts.length < 3) continue;
+
+            String historyTier = parts[0].toUpperCase(Locale.ROOT);
+            String historyMode = parts[2];
+
+            if (!mode.equalsIgnoreCase(historyMode)) {
+                continue;
+            }
+
+            if (!normalizedTier.equals(historyTier)) {
+                continue;
+            }
+
+            try {
+                long timestamp = Long.parseLong(parts[1]);
+
+                // use the most recent time they attained this displayed tier
+                if (timestamp > latestMatch) {
+                    latestMatch = timestamp;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+    }
+
+    return latestMatch;
 }
 
 private static Ranking parseSealTier(String tierCode, boolean retired) {
@@ -349,7 +399,18 @@ private static Ranking parseSealTier(String tierCode, boolean retired) {
         return new Ranking(999, 1, null, null, 0L, retired);
     }
 
-    char highLow = Character.toUpperCase(tierCode.charAt(0));
+    tierCode = tierCode.toUpperCase(Locale.ROOT);
+
+    // Remove retired prefix like RHT1 -> HT1
+    if (tierCode.startsWith("R")) {
+        tierCode = tierCode.substring(1);
+    }
+
+    if (tierCode.length() < 3) {
+        return new Ranking(999, 1, null, null, 0L, retired);
+    }
+
+    char highLow = tierCode.charAt(0);
     int tierNumber;
 
     try {
