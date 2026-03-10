@@ -2,11 +2,29 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "tier-tagger:textures/font/icons.png",
-      "ascent": 26,
-      "height": 32,
+      "file": "tier-tagger:textures/sealtiers/melee.png",
+      "ascent": 8,
+      "height": 8,
       "chars": [
-        "\uE701\uE702\uE703"
+        "\uE701"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "tier-tagger:textures/sealtiers/endstone.png",
+      "ascent": 8,
+      "height": 8,
+      "chars": [
+        "\uE702"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "tier-tagger:textures/sealtiers/crystalSumo.png",
+      "ascent": 8,
+      "height": 8,
+      "chars": [
+        "\uE703"
       ]
     }
   ]
