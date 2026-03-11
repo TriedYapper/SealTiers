@@ -36,19 +36,12 @@ public static CompletableFuture<List<GameMode>> fetchGamemodes(HttpClient client
 
     public Component asStyled(boolean withDefaultDot) {
         Pair<Character, TextColor> pair = this.iconAndColor();
-
+    
         if (pair.right().getValue() == 0xFFFFFF && !withDefaultDot) {
             return Component.literal(this.title);
         } else {
-            Component icon = Component.literal(String.valueOf(pair.left()))
-                    .withStyle(s -> s
-                            .withColor(pair.right())
-                            .withFont(ResourceLocation.parse("tier-tagger:icons")));
-
-            Component name = Component.literal(" " + this.title)
-                    .withStyle(s -> s.withColor(pair.right()));
-
-            return icon.append(name);
+            Component name = Component.literal(this.title).withStyle(s -> s.withColor(pair.right()));
+            return Component.literal(pair.left() + " ").append(name);
         }
     }
 }
