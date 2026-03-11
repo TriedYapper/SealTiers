@@ -1,5 +1,6 @@
 package com.kevin.tiertagger.tierlist;
 
+import net.minecraft.resources.Identifier;
 import com.kevin.tiertagger.TierTagger;
 import com.kevin.tiertagger.model.GameMode;
 import com.kevin.tiertagger.model.PlayerInfo;
@@ -23,6 +24,9 @@ import java.time.format.DateTimeFormatter;
 public class PlayerInfoScreen extends CloseableScreen {
     private final PlayerInfo info;
     private final PlayerSkinWidget skin;
+    private static final Identifier MELEE_ICON = Identifier.fromNamespaceAndPath("tier-tagger", "textures/sealtiers/melee.png");
+    private static final Identifier ENDSTONE_ICON = Identifier.fromNamespaceAndPath("tier-tagger", "textures/sealtiers/endstone.png");
+    private static final Identifier CRYSTAL_SUMO_ICON = Identifier.fromNamespaceAndPath("tier-tagger", "textures/sealtiers/crystalSumo.png");
 
     public PlayerInfoScreen(Screen parent, PlayerInfo info, PlayerSkinWidget skin) {
         super(Component.literal("Player Info"), parent);
@@ -30,6 +34,15 @@ public class PlayerInfoScreen extends CloseableScreen {
         this.skin = skin;
     }
 
+    private Identifier getIcon(GameMode gamemode) {
+    return switch (gamemode.id()) {
+        case "melee" -> MELEE_ICON;
+        case "endstone" -> ENDSTONE_ICON;
+        case "crystalSumo" -> CRYSTAL_SUMO_ICON;
+        default -> null;
+    };
+}
+    
     @Override
     protected void init() {
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> Minecraft.getInstance().setScreen(parent))
@@ -46,9 +59,9 @@ public class PlayerInfoScreen extends CloseableScreen {
         for (PlayerInfo.NamedRanking namedRanking : this.info.getSortedTiers()) {
             // ugly "fix" to avoid crashes if upstream doesn't have the right names
             if (namedRanking.mode() == null) continue;
-
+            
             StringWidget text = new StringWidget(formatTier(namedRanking.mode(), namedRanking.ranking()), this.font);
-            text.setX(this.width / 2 + 5);
+            text.setX(this.width / 2 + 15);
             text.setY(rankingY);
 
             String date = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC).format(Instant.ofEpochSecond(namedRanking.ranking().attained()));
@@ -75,11 +88,27 @@ public class PlayerInfoScreen extends CloseableScreen {
         graphics.drawString(this.font, "Rankings:", this.width / 2 + 5, startY + 45, 0xFFFFFFFF);
     }
 
+    int rankingHeight = this.info.rankings().size() * 11;
+int infoHeight = 56;
+int startY = (this.height - infoHeight - rankingHeight) / 2;
+int rankingY = startY + infoHeight;
+
+for (PlayerInfo.NamedRanking namedRanking : this.info.getSortedTiers()) {
+    if (namedRanking.mode() == null) continue;
+
+    Identifier icon = getIcon(namedRanking.mode());
+    if (icon != null) {
+        graphics.blit(icon, this.width / 2 + 5, rankingY, 0, 0, 8, 8, 8, 8);
+    }
+
+    rankingY += 11;
+}
+
     private Component formatTier(@NotNull GameMode gamemode, PlayerInfo.Ranking ranking) {
         Component tierText = TierTagger.getRankingText(ranking, true);
 
         return Component.empty()
-                .append(gamemode.asStyled(true))
+                .append(Component.literal(gamemode.title()))
                 .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
                 .append(tierText);
     }
