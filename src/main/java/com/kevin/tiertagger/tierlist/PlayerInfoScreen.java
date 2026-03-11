@@ -1,6 +1,5 @@
 package com.kevin.tiertagger.tierlist;
 
-import net.minecraft.util.Identifier;
 import com.kevin.tiertagger.TierTagger;
 import com.kevin.tiertagger.model.GameMode;
 import com.kevin.tiertagger.model.PlayerInfo;
@@ -31,7 +30,7 @@ public class PlayerInfoScreen extends CloseableScreen {
             new Identifier("tier-tagger", "textures/sealtiers/endstone.png");
     
     private static final Identifier CRYSTAL_SUMO_ICON =
-            new Identifier("tier-tagger", "textures/sealtiers/crystalSumo.png");
+            new Identifier("tier-tagger", "textures/sealtiers/crystalsumo.png");
 
     public PlayerInfoScreen(Screen parent, PlayerInfo info, PlayerSkinWidget skin) {
         super(Component.literal("Player Info"), parent);
