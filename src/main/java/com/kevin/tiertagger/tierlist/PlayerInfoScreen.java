@@ -25,11 +25,11 @@ public class PlayerInfoScreen extends CloseableScreen {
     private final PlayerInfo info;
     private final PlayerSkinWidget skin;
     private static final Identifier MELEE_ICON =
-            new Identifier("tier-tagger", "textures/sealtiers/melee.png");
+            Identifier.of("tier-tagger", "textures/sealtiers/melee.png");
     private static final Identifier ENDSTONE_ICON =
-            new Identifier("tier-tagger", "textures/sealtiers/endstone.png");
+            Identifier.of("tier-tagger", "textures/sealtiers/endstone.png");
     private static final Identifier CRYSTAL_SUMO_ICON =
-            new Identifier("tier-tagger", "textures/sealtiers/crystalsumo.png");
+            Identifier.of("tier-tagger", "textures/sealtiers/crystalsumo.png");
 
     public PlayerInfoScreen(Screen parent, PlayerInfo info, PlayerSkinWidget skin) {
         super(Component.literal("Player Info"), parent);
