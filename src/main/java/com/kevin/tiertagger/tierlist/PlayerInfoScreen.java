@@ -1,5 +1,6 @@
 package com.kevin.tiertagger.tierlist;
 
+import net.minecraft.resources.ResourceLocation;
 import com.kevin.tiertagger.TierTagger;
 import com.kevin.tiertagger.model.GameMode;
 import com.kevin.tiertagger.model.PlayerInfo;
@@ -23,14 +24,12 @@ import java.time.format.DateTimeFormatter;
 public class PlayerInfoScreen extends CloseableScreen {
     private final PlayerInfo info;
     private final PlayerSkinWidget skin;
-    private static final Identifier MELEE_ICON =
-            new Identifier("tier-tagger", "textures/sealtiers/melee.png");
-    
-    private static final Identifier ENDSTONE_ICON =
-            new Identifier("tier-tagger", "textures/sealtiers/endstone.png");
-    
-    private static final Identifier CRYSTAL_SUMO_ICON =
-            new Identifier("tier-tagger", "textures/sealtiers/crystalsumo.png");
+    private static final ResourceLocation MELEE_ICON =
+            ResourceLocation.parse("tier-tagger:textures/sealtiers/melee.png");
+    private static final ResourceLocation ENDSTONE_ICON =
+            ResourceLocation.parse("tier-tagger:textures/sealtiers/endstone.png");
+    private static final ResourceLocation CRYSTAL_SUMO_ICON =
+            ResourceLocation.parse("tier-tagger:textures/sealtiers/crystalsumo.png");
 
     public PlayerInfoScreen(Screen parent, PlayerInfo info, PlayerSkinWidget skin) {
         super(Component.literal("Player Info"), parent);
@@ -38,7 +37,7 @@ public class PlayerInfoScreen extends CloseableScreen {
         this.skin = skin;
     }
 
-    private Identifier getIcon(GameMode gamemode) {
+    private ResourceLocation getIcon(GameMode gamemode) {
         return switch (gamemode.id()) {
             case "melee" -> MELEE_ICON;
             case "endstone" -> ENDSTONE_ICON;
