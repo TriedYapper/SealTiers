@@ -86,7 +86,8 @@ public class PlayerSearchScreen extends CloseableScreen {
                 .thenAccept(screen -> Minecraft.getInstance().execute(() -> Minecraft.getInstance().setScreen(screen)))
                 .whenComplete((v, t) -> {
                     if (t != null) {
-                        Ukutils.sendToast(Component.translatable("tiertagger.search.unknown"), null);
+                        t.printStackTrace();
+                        Ukutils.sendToast(Component.literal("Unknown player: " + t), null);
                     }
                     this.searching = false;
                     this.searchButton.setMessage(Component.translatable("tiertagger.search"));
