@@ -41,7 +41,7 @@ public static CompletableFuture<List<GameMode>> fetchGamemodes(HttpClient client
             return Component.literal(this.title);
         } else {
             Component name = Component.literal(this.title).withStyle(s -> s.withColor(pair.right()));
-            return Component.literal(pair.left() + " ").append(name);
+            return Component.literal(" ").append(name);
         }
     }
 }
