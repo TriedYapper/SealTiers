@@ -35,13 +35,13 @@ public class PlayerInfoScreen extends CloseableScreen {
     }
 
     private Identifier getIcon(GameMode gamemode) {
-    return switch (gamemode.id()) {
-        case "melee" -> MELEE_ICON;
-        case "endstone" -> ENDSTONE_ICON;
-        case "crystalSumo" -> CRYSTAL_SUMO_ICON;
-        default -> null;
-    };
-}
+        return switch (gamemode.id()) {
+            case "melee" -> MELEE_ICON;
+            case "endstone" -> ENDSTONE_ICON;
+            case "crystalSumo" -> CRYSTAL_SUMO_ICON;
+            default -> null;
+        };
+    }
     
     @Override
     protected void init() {
@@ -72,36 +72,33 @@ public class PlayerInfoScreen extends CloseableScreen {
         }
     }
 
-    @Override
-    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        super.render(graphics, mouseX, mouseY, delta);
+@Override
+public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+    super.render(graphics, mouseX, mouseY, delta);
 
-        graphics.drawCenteredString(this.font, this.info.name() + "'s profile", this.width / 2, 20, 0xFFFFFFFF);
-
-        int rankingHeight = this.info.rankings().size() * 11;
-        int infoHeight = 56; // 4 lines of text (10 px tall) + 6 px padding
-        int startY = (this.height - infoHeight - rankingHeight) / 2;
-
-        graphics.drawString(this.font, getRegionText(this.info), this.width / 2 + 5, startY, 0xFFFFFFFF);
-        graphics.drawString(this.font, getPointsText(this.info), this.width / 2 + 5, startY + 15, 0xFFFFFFFF);
-        graphics.drawString(this.font, getRankText(this.info), this.width / 2 + 5, startY + 30, 0xFFFFFFFF);
-        graphics.drawString(this.font, "Rankings:", this.width / 2 + 5, startY + 45, 0xFFFFFFFF);
-    }
+    graphics.drawCenteredString(this.font, this.info.name() + "'s profile", this.width / 2, 20, 0xFFFFFFFF);
 
     int rankingHeight = this.info.rankings().size() * 11;
-int infoHeight = 56;
-int startY = (this.height - infoHeight - rankingHeight) / 2;
-int rankingY = startY + infoHeight;
+    int infoHeight = 56; // 4 lines of text (10 px tall) + 6 px padding
+    int startY = (this.height - infoHeight - rankingHeight) / 2;
 
-for (PlayerInfo.NamedRanking namedRanking : this.info.getSortedTiers()) {
-    if (namedRanking.mode() == null) continue;
+    graphics.drawString(this.font, getRegionText(this.info), this.width / 2 + 5, startY, 0xFFFFFFFF);
+    graphics.drawString(this.font, getPointsText(this.info), this.width / 2 + 5, startY + 15, 0xFFFFFFFF);
+    graphics.drawString(this.font, getRankText(this.info), this.width / 2 + 5, startY + 30, 0xFFFFFFFF);
+    graphics.drawString(this.font, "Rankings:", this.width / 2 + 5, startY + 45, 0xFFFFFFFF);
 
-    Identifier icon = getIcon(namedRanking.mode());
-    if (icon != null) {
-        graphics.blit(icon, this.width / 2 + 5, rankingY, 0, 0, 8, 8, 8, 8);
+    int rankingY = startY + infoHeight;
+
+    for (PlayerInfo.NamedRanking namedRanking : this.info.getSortedTiers()) {
+        if (namedRanking.mode() == null) continue;
+
+        Identifier icon = getIcon(namedRanking.mode());
+        if (icon != null) {
+            graphics.blit(icon, this.width / 2 + 5, rankingY, 0, 0, 8, 8, 8, 8);
+        }
+
+        rankingY += 11;
     }
-
-    rankingY += 11;
 }
 
     private Component formatTier(@NotNull GameMode gamemode, PlayerInfo.Ranking ranking) {
