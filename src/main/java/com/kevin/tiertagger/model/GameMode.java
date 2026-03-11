@@ -1,7 +1,7 @@
 package com.kevin.tiertagger.model;
 
-import net.minecraft.resources.ResourceLocation;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.util.Identifier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -44,7 +44,7 @@ public static CompletableFuture<List<GameMode>> fetchGamemodes(HttpClient client
             Component icon = Component.literal(String.valueOf(pair.left()))
                     .withStyle(s -> s
                             .withColor(pair.right())
-                            .withFont(new ResourceLocation("tier-tagger", "icons")));
+                            .withFont(Identifier.of("tier-tagger", "icons")));
 
             Component name = Component.literal(" " + this.title)
                     .withStyle(s -> s.withColor(pair.right()));
