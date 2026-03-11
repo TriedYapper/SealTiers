@@ -175,7 +175,7 @@ public class TierTagger implements ModInitializer {
                     .thenAccept(p -> Minecraft.getInstance().execute(() -> ctx.getSource().sendFeedback(printPlayerInfo(selector.name(), p.rankings()))))
                     .exceptionally(t -> {
                         t.printStackTrace();
-                        ctx.getSource().sendError(Component.literal("Could not find player " + selector.name() + ": " + t));
+                        ctx.getSource().sendError(Component.literal("Could not find player " + selector.name() + ": " + String.valueOf(t)));
                         return null;
                     });
         }
