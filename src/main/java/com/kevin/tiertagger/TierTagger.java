@@ -91,7 +91,7 @@ public class TierTagger implements ModInitializer {
                     Component tierText = getRankingText(entry.ranking(), false);
 
                     if (manager.getConfig().isShowIcons() && entry.mode() != null && entry.mode().icon().isPresent()) {
-                        return Component.literal(entry.mode().icon().get().toString()).append(tierText);
+                        return Component.literal(entry.mode().title() + " ").append(tierText);
                     } else {
                         return tierText.copy();
                     }
