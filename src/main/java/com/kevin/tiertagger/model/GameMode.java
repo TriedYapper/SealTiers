@@ -1,7 +1,7 @@
 package com.kevin.tiertagger.model;
 
 import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
